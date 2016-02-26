@@ -5,6 +5,7 @@ package twilio
 import (
 	"bytes"
 	"encoding/xml"
+	"errors"
 	"net/http"
 	"os"
 	"regexp"
@@ -86,6 +87,22 @@ func handlerTwilio(c *echo.Context) error {
 		if !errSent {
 			handlerError(err, c)
 		}
+	}
+	return nil
+}
+
+func validatePhone(s string) error {
+	if len(s) < 10 || len(s) > 20 || !PhoneRegex.MatchString(s) {
+		return errors.New(
+			"Your phone must be a valid U.S. number with the area code.")
+	}
+	if len(s) == 11 && s[0] != '1' {
+		return errors.New(
+			"Sorry, Ava only serves U.S. customers for now.")
+	}
+	if len(s) == 12 && s[0] == '+' && s[1] != '1' {
+		return errors.New(
+			"Sorry, Ava only serves U.S. customers for now.")
 	}
 	return nil
 }
