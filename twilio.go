@@ -3,6 +3,7 @@
 package twilio
 
 import (
+	"encoding/xml"
 	"errors"
 	"regexp"
 	"strings"
@@ -79,4 +80,9 @@ func (p phone) Valid() (valid bool, err error) {
 		return false, errors.New("unsupported international number")
 	}
 	return true, nil
+}
+
+type TwilioResp struct {
+	XMLName xml.Name `xml:"Response"`
+	Message string
 }
