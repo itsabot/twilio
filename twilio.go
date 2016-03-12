@@ -5,19 +5,34 @@ package twilio
 import (
 	"encoding/xml"
 	"errors"
+	"net/http"
 	"regexp"
 	"strings"
 
+	"github.com/itsabot/abot/core"
+	"github.com/itsabot/abot/shared/datatypes"
 	"github.com/itsabot/abot/shared/interface/sms"
 	"github.com/itsabot/abot/shared/interface/sms/driver"
+	"github.com/itsabot/abot/shared/log"
+	"github.com/labstack/echo"
 	"github.com/subosito/twilio"
 )
 
 type drv struct{}
 
-func (d *drv) Open(name string) (driver.Conn, error) {
+func (d *drv) Open(name string, e *echo.Echo) (driver.Conn, error) {
 	auth := strings.Split(name, ":")
 	c := conn(*twilio.NewClient(auth[0], auth[1], nil))
+	hm := dt.NewHandlerMap([]dt.RouteHandler{
+		{
+			// Path is prefixed by "twilio" automatically. Thus the
+			// path below becomes "/twilio"
+			Path:    "/",
+			Method:  echo.POST,
+			Handler: handlerTwilio,
+		},
+	})
+	hm.AddRoutes("twilio", e)
 	return &c, nil
 }
 
@@ -68,4 +83,34 @@ func (p Phone) Valid() (valid bool, err error) {
 type TwilioResp struct {
 	XMLName xml.Name `xml:"Response"`
 	Message string
+}
+
+// handlerTwilio responds to SMS messages sent through Twilio. Unlike other
+// handlers, we process internal errors without returning here, since any errors
+// should not be presented directly to the user -- they should be "humanized"
+func handlerTwilio(c *echo.Context) error {
+	c.Set("cmd", c.Form("Body"))
+	c.Set("flexid", c.Form("From"))
+	c.Set("flexidtype", 2)
+	ret, _, err := core.ProcessText(c)
+	if err != nil {
+		log.Debug("couldn't process text", err)
+		ret = "Something went wrong with my wiring... I'll get that fixed up soon."
+	}
+	/*
+		// TODO
+		if err = ws.NotifySockets(c, uid, c.Form("Body"), ret); err != nil {
+			return core.JSONError(err)
+		}
+	*/
+	var resp TwilioResp
+	if len(ret) == 0 {
+		resp = TwilioResp{}
+	} else {
+		resp = TwilioResp{Message: ret}
+	}
+	if err = c.XML(http.StatusOK, resp); err != nil {
+		return core.JSONError(err)
+	}
+	return nil
 }

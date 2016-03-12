@@ -1,0 +1,12 @@
+bitbucket.org/pkg/inflect 8961c3750a47
+github.com/dchest/stemmer f1ab276e6cf5fad3f8db813f22e25b1939c8ef70
+github.com/itsabot/abot 4f0b2b29cf7d480e6a4b656b64c721b5ae1c4369
+github.com/jmoiron/sqlx 398dd5876282499cdfd4cb8ea0f31a672abe9495
+github.com/labstack/echo 30ee5fbb95aa1fc1c09f101fc7f9a1022a78da38
+github.com/labstack/gommon bfff5bf04688a4048a5cb4dd3b3f0697caaad19c
+github.com/lib/pq 8ad2b298cadd691a77015666a5372eae5dbfac8f
+github.com/mattn/go-colorable 9cbef7c35391cca05f15f8181dc0b18bc9736dbb
+github.com/mattn/go-isatty 56b76bdf51f7708750eac80fa38b952bb9f32639
+github.com/subosito/figo 4f2709582c104a76b1ef6c24d47a682ec1b085c3
+github.com/subosito/twilio 2a2109f2a1482f7e34b8018db21fab8b02335f43
+golang.org/x/net 6acef71eb69611914f7a30939ea9f6e194c78172
