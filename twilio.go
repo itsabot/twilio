@@ -1,4 +1,4 @@
-// Package twilio implements the github.comitsabot/abot/interface/sms driver
+// Package twilio implements the github.com/itsabot/abot/interface/sms/driver
 // interface.
 package twilio
 
@@ -13,11 +13,7 @@ import (
 	"github.com/subosito/twilio"
 )
 
-type drv struct {
-	fromKey string
-	toKey   string
-	msgKey  string
-}
+type drv struct{}
 
 func (d *drv) Open(name string) (driver.Conn, error) {
 	auth := strings.Split(name, ":")
@@ -25,24 +21,8 @@ func (d *drv) Open(name string) (driver.Conn, error) {
 	return &c, nil
 }
 
-func (d *drv) FromKey() string {
-	return d.fromKey
-}
-
-func (d *drv) ToKey() string {
-	return d.toKey
-}
-
-func (d *drv) MsgKey() string {
-	return d.msgKey
-}
-
 func init() {
-	sms.Register("twilio", &drv{
-		fromKey: "From",
-		toKey:   "To",
-		msgKey:  "Body",
-	})
+	sms.Register("twilio", &drv{})
 }
 
 type conn twilio.Client
@@ -64,19 +44,22 @@ func (c *conn) Close() error {
 // phoneRegex determines whether a string is a phone number
 var phoneRegex = regexp.MustCompile(`^\+?[1-9]\d{1,14}$`)
 
-type phone string
+type Phone string
 
 // Valid determines the validity of a phone number according to Twilio's
 // expectations for the number's formatting. If valid, error will be nil. If
 // invalid, the returned error will contain the reason.
-func (p phone) Valid() (valid bool, err error) {
+func (p Phone) Valid() (valid bool, err error) {
 	if len(p) < 10 || len(p) > 20 || !phoneRegex.MatchString(string(p)) {
 		return false, errors.New("invalid phone number format: must have E.164 formatting")
 	}
 	if len(p) == 11 && p[0] != '1' {
 		return false, errors.New("unsupported international number")
 	}
-	if len(p) == 12 && p[0] == '+' && p[1] != '1' {
+	if p[0] != '+' {
+		return false, errors.New("first character in phone number must be +")
+	}
+	if len(p) == 12 && p[1] != '1' {
 		return false, errors.New("unsupported international number")
 	}
 	return true, nil
