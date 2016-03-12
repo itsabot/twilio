@@ -11,14 +11,10 @@ import (
 	"github.com/itsabot/abot/core"
 	"github.com/itsabot/abot/shared/interface/sms"
 	"github.com/itsabot/abot/shared/log"
-	"github.com/jmoiron/sqlx"
 	"github.com/labstack/echo"
 )
 
 var e *echo.Echo
-var db *sqlx.DB
-var ner core.Classifier
-var offensive map[string]struct{}
 
 func TestMain(m *testing.M) {
 	if len(os.Getenv("TWILIO_TEST_ACCOUNT_SID")) == 0 ||
@@ -27,9 +23,12 @@ func TestMain(m *testing.M) {
 		os.Exit(1)
 	}
 	var err error
+	if err = os.Setenv("ABOT_ENV", "test"); err != nil {
+		log.Info("couldn't set ABOT_ENV=test", err)
+	}
 	e, err = core.NewServer()
 	if err != nil {
-		log.Info("couldnt boot server", err)
+		log.Info("couldn't boot server", err)
 		os.Exit(1)
 	}
 	os.Exit(m.Run())
@@ -53,13 +52,13 @@ func TestOpenAndSend(t *testing.T) {
 func TestHandler(t *testing.T) {
 	u := fmt.Sprintf("http://localhost:%s/twilio", os.Getenv("PORT"))
 	data := []byte(`{ "Body": "Test message", "From": "+15005551234" }`)
-	c, _ := request("POST", u, data, e)
+	c, _ := request("POST", u, data)
 	if c != 200 {
 		t.Fatal("expected 200. got", c)
 	}
 }
 
-func request(method, path string, data []byte, e *echo.Echo) (int, string) {
+func request(method, path string, data []byte) (int, string) {
 	r, err := http.NewRequest(method, path, bytes.NewBuffer(data))
 	if err != nil {
 		return 0, "err completing request: " + err.Error()
