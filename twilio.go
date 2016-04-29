@@ -3,6 +3,8 @@
 package twilio
 
 import (
+	"bytes"
+	"encoding/json"
 	"encoding/xml"
 	"errors"
 	"net/http"
@@ -97,40 +99,36 @@ type TwilioResp struct {
 // handlers, we process internal errors without returning here, since any errors
 // should not be presented directly to the user -- they should be "humanized"
 func handlerTwilio(w http.ResponseWriter, r *http.Request) {
-	/*
-		c.Set("cmd", c.Form("Body"))
-		c.Set("flexid", c.Form("From"))
-		c.Set("flexidtype", 2)
-	*/
-	ret, _, err := core.ProcessText(r)
-	if err != nil {
-		log.Debug("couldn't process text", err)
+	var ret string
+	if err := r.ParseForm(); err != nil {
+		log.Info("failed parsing twilio post form.", err)
 		ret = "Something went wrong with my wiring... I'll get that fixed up soon."
 	}
-	/*
-		// TODO
-		if err = ws.NotifySockets(c, uid, c.Form("Body"), ret); err != nil {
-			return core.JSONError(err)
-		}
-	*/
-	var resp TwilioResp
-	if len(ret) == 0 {
-		resp = TwilioResp{}
-	} else {
-		resp = TwilioResp{Message: ret}
+	tmp := struct {
+		CMD        string
+		FlexID     string
+		FlexIDType dt.FlexIDType
+	}{
+		CMD:        r.FormValue("Body"),
+		FlexID:     r.FormValue("From"),
+		FlexIDType: 2,
 	}
-
-	data, err := xml.MarshalIndent(resp, "", "\t")
+	byt, err := json.Marshal(tmp)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		log.Info("failed marshaling req struct.", err)
+		ret = "Something went wrong with my wiring... I'll get that fixed up soon."
 	}
-
-	if _, err = w.Write(data); err != nil {
-		w.WriteHeader(500)
-		_, err = w.Write([]byte(`{"Msg":"` + err.Error() + `"}`))
-		if err != nil {
-			return
-		}
+	r, err = http.NewRequest(r.Method, r.URL.String(), bytes.NewBuffer(byt))
+	if err != nil {
+		log.Info("failed building http request.", err)
+		ret = "Something went wrong with my wiring... I'll get that fixed up soon."
+	}
+	ret, _, err = core.ProcessText(r)
+	if err != nil {
+		log.Info("failed processing text.", err)
+		ret = "Something went wrong with my wiring... I'll get that fixed up soon."
+	}
+	if _, err = w.Write([]byte(ret)); err != nil {
+		log.Info("failed to write response.", err)
 	}
 }
