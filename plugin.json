@@ -1,4 +1,7 @@
 {
 	"Name": "Twilio",
+	"Maintainer": "Evan Tann <evan@itsabot.org>",
+	"AbotVersion": 0.2,
+	"Description": "Enable your Abot to send and receive text messages.",
 	"Icon": "https://demo.twilio.com/logo.png"
 }
