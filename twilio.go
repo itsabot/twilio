@@ -123,7 +123,7 @@ func handlerTwilio(w http.ResponseWriter, r *http.Request) {
 		log.Info("failed building http request.", err)
 		ret = "Something went wrong with my wiring... I'll get that fixed up soon."
 	}
-	ret, _, err = core.ProcessText(r)
+	ret, err = core.ProcessText(r)
 	if err != nil {
 		log.Info("failed processing text.", err)
 		ret = "Something went wrong with my wiring... I'll get that fixed up soon."
