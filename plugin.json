@@ -1,7 +1,11 @@
 {
 	"Name": "Twilio",
 	"Maintainer": "Evan Tann <evan@itsabot.org>",
-	"AbotVersion": 0.2,
 	"Description": "Enable your Abot to send and receive text messages.",
-	"Icon": "https://demo.twilio.com/logo.png"
+	"Icon": "https://demo.twilio.com/logo.png",
+	"Settings": {
+		"TWILIO_ACCOUNT_SID": { "Required": true },
+		"TWILIO_AUTH_TOKEN": { "Required": true },
+		"TWILIO_PHONE": { "Required": true }
+	}
 }
